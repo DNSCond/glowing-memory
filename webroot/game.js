@@ -1,10 +1,8 @@
+"use strict";
+
 class Example extends Phaser.Scene {
     preload() {
-        this.load.setBaseURL('https://cdn.phaserfiles.com/v385');
 
-        this.load.image('sky', 'assets/skies/space3.png');
-        this.load.image('logo', 'assets/sprites/phaser3-logo.png');
-        this.load.image('red', 'assets/particles/red.png');
     }
 
     create() {
@@ -24,6 +22,21 @@ class Example extends Phaser.Scene {
 
         particles.startFollow(logo);
     }
+
+    setupCamera() {
+        this.cameras.main.setBounds(0, 0, this.worldWidth, this.worldHeight);
+    }
+
+    resize() {
+        const width = this.scale.width;
+        const height = this.scale.height;
+
+        // Adjust camera
+        this.cameras.main.setZoom(this.getOptimalZoom());
+
+        // Reposition UI elements
+        this.repositionUI();
+    }
 }
 
 const config = {
@@ -36,6 +49,10 @@ const config = {
         arcade: {
             gravity: { y: 200 }
         }
+    },
+    scale: {
+        mode: Phaser.Scale.RESIZE, // Or other scaling modes
+        autoCenter: Phaser.Scale.CENTER_BOTH
     }
 };
 
