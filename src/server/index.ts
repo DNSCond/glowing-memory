@@ -4,10 +4,10 @@ import {
   context,
   getServerPort,
   reddit,
+  redis,
 } from "@devvit/web/server";
 import { createPost } from "./post";
-// import { } from "anthelpers";
-import { htmlencode } from "./htmlencode";
+import { ResolveSecondsAfter } from "anthelpers";
 
 const app = express();
 
@@ -20,12 +20,16 @@ app.use(express.text());
 
 const router = express.Router();
 
-router.get("/api/wikipageList", async (_req, res): Promise<void> => {
+router.get("/api/postsList", async (_req, res): Promise<void> => {
   try {
-    // await isModerayor();
-    const step = await reddit.getWikiPages(context.subredditName);
-    const pages = step;//.filter(wikipageName => !wikipageName.startsWith('config/') && wikipageName !== 'config/automoderator');
-    res.json({ pages });
+    const { subredditName } = context;
+    const postObjects = await reddit.getTopPosts({ subredditName, limit: 50 }).all(),
+      posts: string[] = new Array, expiration = ResolveSecondsAfter(8600);
+    for (const post of postObjects) {
+      posts.push(post.id);
+      await redis.set(post.id, JSON.stringify(post), { expiration });
+    }
+    res.json({ posts });
   } catch (error) {
     res.status(400).json({
       status: "error",
@@ -36,16 +40,19 @@ router.get("/api/wikipageList", async (_req, res): Promise<void> => {
   }
 });
 
-router.get("/api/wikipageContent", async (req, res): Promise<void> => {
+function unpackJSON(json: any) {
+  if (typeof json === 'string') {
+    return JSON.parse(json);
+  } return json;
+}
+
+router.get("/api/getPost", async (req, res): Promise<void> => {
   try {
-    await isModerayor();
-    const wikipageName = req.query.wikipageName as string | undefined;
-    if (!wikipageName) throw new RangeError('wikipageName is undefined');
-    let { content, revisionDate, revisionAuthor, revisionReason, contentHtml } = (await reddit.getWikiPage(context.subredditName, wikipageName));
-    content = wikipageName === 'config/automoderator' ? content : content.replace(/\s*(?:---\s*)?revision by.+$/i, '');
-    const revisionAuthorname = revisionAuthor?.username || '[undefined]';
-    const contentHTML = wikipageName === 'config/automoderator' ? `<pre class=Favicond_antboiy-addition>${htmlencode(content)}</pre>` : contentHtml;
-    res.json({ content, revisionDate, revisionAuthorname, revisionReason, contentHTML });
+    const postId = req.query['reddit-id'] as string | undefined;
+    if (!postId) throw new RangeError('wikipageName is undefined');
+    // @ts-expect-error
+    let { title, body, createdAt, authorId, bodyHtml, authorName, url } = unpackJSON(await redis.get(postId)) || (await reddit.getPostById(postId));
+    res.json({ title, body, createdAt, authorId, bodyHtml, authorName, url });
   } catch (error) {
     res.status(400).json({
       status: "error",
@@ -76,40 +83,14 @@ router.get("/api/isModerator", async (_req, res): Promise<void> => {
   res.status(200).json({ status: "success", isModerator: true, error: null });
 });
 
-app.post('/api/wikipost', async (req, res) => {
-  const { text, wikipageName } = JSON.parse(req.body), { subredditName } = context;
-  try {
-    const { username } = await isModerayor();
-    const reason = `revision by u/${username} (${Date()})`;
-
-    if (typeof wikipageName !== 'string') throw new TypeError('wikipageName msut be a string');
-    if (wikipageName.startsWith('config/') && wikipageName !== 'config/automoderator') throw new TypeError('(config/) pages cant be edited');
-    const content = text + '\n\n---\n\n' + (wikipageName === 'config/automoderator' ? '# ' : '') + reason, page = wikipageName;
-    await reddit.updateWikiPage({ content, subredditName, page, reason, });
-
-    res.status(200).json({
-      status: "success",
-      message: 'successfully published',
-      text, wikipageName,
-    });
-  } catch (error) {
-    res.status(400).json({
-      status: "error",
-      message: "Failed to create wikipage",
-      error: String(error),
-    });
-    throw error;
-  }
-});
-
 router.post("/internal/menu/create-post", async (_req, res) => {
   //const { subredditName } = req.body; // Ensure you get the subreddit name from the request context
   //if (!subredditName) {res.status(400).json({ showToast: 'Subreddit name missing.' });return;}
-  const navigateTo = await createPost('Please Ignore, The moderators need to edit the wiki');
-  await navigateTo.addComment({
-    text: 'please ignore this post. it was created due to a nessary workarounddue ' +
-      'to devvit\'s limitations. if i can find a way to not make posts then ill do it'
-  });
+  const navigateTo = await createPost('Antboiy\'s Reddit Entrance');
+  // await navigateTo.addComment({
+  //   text: 'please ignore this post. it was created due to a nessary workarounddue ' +
+  //     'to devvit\'s limitations. if i can find a way to not make posts then ill do it'
+  // });
   res.json({ navigateTo });
 });
 

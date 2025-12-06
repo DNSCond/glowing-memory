@@ -10,29 +10,10 @@
 </head>
 
 <body class=app>
+  <h1>Antboiy's Reddit</h1>
+<!-- <switch-element id=use></switch-element> -->
   <div>
-    <section>
-      <h1>Edit Content</h1>
-      <label for=note-body>Body:</label>
-      <div>
-        <textarea id=note-body placeholder="Body" rows=26></textarea>
-      </div>
-      <label>time url generator: <input type=datetime-local></label>
-      <output id=datetime-output></output>
-    </section>
-    <section>
-      <h2>Publish</h2>
-      <label>wikipage-To: <input id=note-title placeholder=wikipage type=text></label>
-      <button id=subkit>overwrite</button>
-      <!-- <div id=errormessage-Favicond></div> -->
-      <div>
-        <ff-d id=errormessage-Reddcond fakefile-bgcolor=#dbffeb ff-name="Errors and Successes"></ff-d>
-      </div>
-    </section>
-    <section>
-      <h2>Wikipages</h2>
-      <ff-d isexpanded fakefile-bgcolor=#dbffeb ff-name=/ id=wikipageList></ul>
-    </section>
+    <div id=posts></div>
   </div>
   <script type="module" src="game/game.ts" defer></script>
   <div style=height:32vh></div>

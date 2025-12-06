@@ -26,8 +26,7 @@ export function attachNavigateToAchorTag(a: HTMLAnchorElement, replaceIfHashURL:
       tag = replaceAnchorWith(a);
     } else {
       const url = (new URL(href, 'https://www.reddit.com')).toString();
-      a.dataset.href = url; //a.href = url; 
-      a.setAttribute('href', url);
+      a.dataset.href = url; a.setAttribute('href', url);
     }
   }
   return { abortController, tag };
