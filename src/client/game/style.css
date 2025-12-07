@@ -1,5 +1,10 @@
 html {
   background-color: white;
+}
+
+html,
+button,
+input {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
     Arial, sans-serif;
 }
@@ -30,4 +35,10 @@ pre {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   word-break: keep-all;
+}
+
+.monospace,
+.monospace button,
+.monospace input {
+  font-family: monospace;
 }

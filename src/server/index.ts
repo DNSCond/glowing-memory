@@ -94,6 +94,45 @@ router.post("/internal/menu/create-post", async (_req, res) => {
   res.json({ navigateTo });
 });
 
+
+router.get("/api/getModActionsOf", async (req, res): Promise<void> => {
+  try {
+    await isModerayor();
+    if (typeof req.query.user !== 'string') {
+      const error = String(new TypeError('Malformed Username'));
+      res.status(400).json({ status: "error", isModerator: false, error });
+      return;
+    } const user = await reddit.getUserByUsername(req.query.user);
+    if (!user) {
+      res.status(404).json({
+        status: "error",
+        isModerator: true,
+        error: String(new RangeError('User not Found')),
+      }); return;
+    }
+    const { id, commentKarma, hasVerifiedEmail, createdAt, linkKarma, isAdmin } = user, userId = id;
+    const postKarma = linkKarma, isAdminBoolean = Boolean(isAdmin), snooRL = (await user.getSnoovatarUrl()) || null;
+    const modnotes = await reddit.getModNotes({ user: user.username, subreddit: context.subredditName }).all();
+    res.status(200).json({
+      status: "success",
+      result: {
+        userId, commentKarma,
+        createdAt, postKarma,
+        hasVerifiedEmail,
+        isAdminBoolean,
+        modnotes, snooRL,
+      },
+      isModerator: true,
+      error: null
+    });
+    return;
+  } catch (errorObject) {
+    const error = String(errorObject);
+    res.status(400).json({ status: "error", isModerator: false, error });
+    return;
+  }
+});
+
 app.use(router);
 const server = createServer(app);
 server.on("error", (err) => console.error(`server error; ${err.stack}`));
