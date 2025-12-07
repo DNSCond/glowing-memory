@@ -12,7 +12,12 @@ fetch('/api/postsList').then(async resp => {
   const json = resp.json(), docu = new DocumentFragment;
   if (!resp.ok) return json.then(m => { throw m });
   for (const post of ((await json).posts)) {
-    docu.append(new FavicondRedditPost(post));
+    const ui_post = new FavicondRedditPost(post);
+    // @ts-expect-error
+    ui_post.addEventListener('linkclick', (event: CustomEvent<string>) => {
+      const { detail } = event; event.preventDefault();
+      console.log('user wants to navigateTo ' + detail);
+    }); docu.append(ui_post);
   }
   postsDiv.append(docu);
 });

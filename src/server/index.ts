@@ -23,7 +23,7 @@ const router = express.Router();
 router.get("/api/postsList", async (_req, res): Promise<void> => {
   try {
     const { subredditName } = context;
-    const postObjects = await reddit.getTopPosts({ subredditName, limit: 50 }).all(),
+    const postObjects = await reddit.getNewPosts({ subredditName, limit: 50 }).all(),
       posts: string[] = new Array, expiration = ResolveSecondsAfter(8600);
     for (const post of postObjects) {
       posts.push(post.id);
