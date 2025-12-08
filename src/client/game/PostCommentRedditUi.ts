@@ -132,14 +132,14 @@ export class FavicondRedditUi extends HTMLElement {
         { signal } = abortController, a = tag;
       a.classList.add('reddit-post-link');
       a.addEventListener('click', (event) => {
-        event.stopPropagation();
+        event.stopImmediatePropagation();
         event.preventDefault(); {
           const href = a.dataset.href as string,
             event = new CustomEvent('linkclick', {
               cancelable: true, bubbles: true,
               composed: true, detail: href,
             }), continueDefault = this.dispatchEvent(event);
-          if (continueDefault) { } // navigateTo(href);
+          if (continueDefault) { } //navigateTo(href);
         }
       }, { signal });
     } return tag;

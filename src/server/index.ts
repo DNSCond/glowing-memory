@@ -112,7 +112,7 @@ router.get("/api/getModActionsOf", async (req, res): Promise<void> => {
     }
     const { id, commentKarma, hasVerifiedEmail, createdAt, linkKarma, isAdmin } = user, userId = id;
     const postKarma = linkKarma, isAdminBoolean = Boolean(isAdmin), snooRL = (await user.getSnoovatarUrl()) || null;
-    const modnotes = await reddit.getModNotes({ user: user.username, subreddit: context.subredditName }).all();
+    const modnotes = await reddit.getModNotes({ user: user.username, subreddit: context.subredditName, limit: 50 }).all();
     res.status(200).json({
       status: "success",
       result: {

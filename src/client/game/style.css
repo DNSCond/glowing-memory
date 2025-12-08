@@ -42,3 +42,21 @@ pre {
 .monospace input {
   font-family: monospace;
 }
+
+/**/
+
+table {
+  border-collapse: collapse;
+  background-color: white;
+  min-width: 100%;
+}
+
+td, th {
+  border: 1px solid #dddddd;
+  text-align: left;
+  padding: 8px;
+}
+
+div.tablediv {
+  overflow: scroll;
+}

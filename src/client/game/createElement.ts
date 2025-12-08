@@ -17,6 +17,13 @@ export function createSpan(...innerNodes: (HTMLElement | string)[]) {
   return span;
 }
 
+export function createDiv(...innerNodes: (HTMLElement | string)[]) {
+  const span = document.createElement('div');
+  span.className = 'createDiv createdElement';
+  span.append(...innerNodes);
+  return span;
+}
+
 export function createCustomTag(tagName: string, ...innerNodes: (HTMLElement | string)[]) {
   const span = document.createElement(tagName);
   span.className = 'createCustomTag createdElement';
