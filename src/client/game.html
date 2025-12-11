@@ -11,20 +11,26 @@
 
 <body class=app>
   <h1>Antboiy's Reddit</h1>
-  <details class=monospace>
-    <summary>Mod Tools (Limited)</summary>
-    <div class=content>
-      <form>
-        u/<input autocomplete=off placeholder="[username]" id=userModEval>
-        <button id=evaluateUser type=submit>Evaluate</button>
-        <output id=u/[output]></output>
-      </form>
-    </div>
-  </details>
-  <div>
+  <section>
+    <details class=monospace>
+      <summary>Mod Tools (Limited)</summary>
+      <div class=content>
+        <form>
+          u/<input value=MajorParadox autocomplete=off placeholder="[username]" id=userModEval>
+          <button id=evaluateUser type=submit>Evaluate</button>
+          <output id=u/[output]></output>
+        </form>
+        <hr>
+        <button id=ReloadModmail>Reload Modmail</button>
+        <div id=modmails></div>
+      </div>
+    </details>
+  </section>
+  <hr>
+  <section>
     <div id=posts></div>
-  </div>
-  <script type="module" src="game/game.ts" defer></script>
+  </section>
+  <script type=module src="game/game.ts" defer></script>
   <div style=height:32vh></div>
 </body>
 

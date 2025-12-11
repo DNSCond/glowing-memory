@@ -1,0 +1,84 @@
+{
+  "isAuto": false,
+  "participant": {
+    "isMod": false,
+    "isAdmin": false,
+    "name": "MajorParadox",
+    "isOp": false,
+    "isParticipant": true,
+    "isApproved": true,
+    "isHidden": false,
+    "id": 13254412,
+    "isDeleted": false
+  },
+  "objIds": [
+    {
+      "id": "4ddo8h",
+      "key": "messages"
+    }
+  ],
+  "isRepliable": true,
+  "lastUserUpdate": "2025-12-06T21:47:23.173000+0000",
+  "isInternal": false,
+  "lastModUpdate": "2025-12-06T21:50:59.178000+0000",
+  "authors": [
+    {
+      "isMod": false,
+      "isAdmin": false,
+      "name": "MajorParadox",
+      "isOp": false,
+      "isParticipant": true,
+      "isApproved": true,
+      "isHidden": false,
+      "id": 13254412,
+      "isDeleted": false
+    },
+    {
+      "isMod": true,
+      "isAdmin": false,
+      "name": "antboiy",
+      "isOp": true,
+      "isParticipant": false,
+      "isApproved": false,
+      "isHidden": false,
+      "id": 2405569551605,
+      "isDeleted": false
+    }
+  ],
+  "lastUpdated": "2025-12-06T21:50:59.178000+0000",
+  "legacyFirstMessageId": "MATRIXCHAT_!fk041y89RSCVvfNUQFqjDw:reddit.com_$aUv8Tfv3GKY0PlLoscL7m2iJmS14TRvejqN_M8iZ43w",
+  "state": "JoinRequests",
+  "conversationType": "sr_user",
+  "lastUnread": "2025-12-06T21:50:59.178000+0000",
+  "owner": {
+    "displayName": "glowing_memory_dev2",
+    "type": "subreddit",
+    "id": "t5_g29val"
+  },
+  "subject": "[join] Request to join",
+  "id": "32gqt4",
+  "isHighlighted": false,
+  "numMessages": 4,
+  "modActions": {},
+  "messages": {
+    "4ddo8h": {
+      "body": "<!-- SC_OFF --><div class=\"md\"><p>weird, i dont see it either. i cant check right now</p>\n</div><!-- SC_ON -->",
+      "author": {
+        "isMod": true,
+        "isAdmin": false,
+        "name": "antboiy",
+        "isOp": true,
+        "isParticipant": false,
+        "isApproved": false,
+        "isHidden": true,
+        "id": 2405569551605,
+        "isDeleted": false
+      },
+      "isInternal": false,
+      "date": "2025-12-06T21:50:59.178000+0000",
+      "bodyMarkdown": "weird, i dont see it either. i cant check right now",
+      "id": "4ddo8h",
+      "participatingAs": "moderator"
+    }
+  }
+}

@@ -31,6 +31,7 @@ export function stringtoType(
     if (string === null) return { string: null, type: 'string' };
     const asIs = { string, type: 'string' } as const;
     if (type === undefined) return asIs;
+
     const timeValue = new Date(string),
         asTime = {
             string: timeValue,
@@ -83,7 +84,6 @@ export type changes = { changeName: string, oldValue?: string | null | undefined
 
 export class HeadersetUi extends HTMLElement {
     #observer: MutationObserver = new MutationObserver(change => this.#attributeChangedCallback(change));
-    #headerval: Map<string, string> = new Map;
     #abortController?: AbortController;
     #allowedHeaders!: string[];
 
@@ -99,19 +99,23 @@ export class HeadersetUi extends HTMLElement {
         head.style.margin = '1em 0 1em 0';
         this.attachShadow({ mode: 'open' }).append(Object.assign(document.createElement('style'), {
             innerText: `:host{font-family:monospace}
-            details {color:black;/* File */
-                border: solid black 2px;
-                border-right: none;
-                padding: 0.5em;
-            }.content {
-                border-left: solid black 2px;
-                padding-left: 1ch;
-            } dt, dd {
+            dt, dd {
                 display: inline;
                 margin: 0;
             } dt:after {
                 content: ": ";
-            }`.replaceAll(/\s+/g, ' '),
+            }
+
+dt { color: #a600a6; }
+
+dd { color: green; }
+
+/*
+@media (prefers-color-scheme: dark) {
+dt { color: #a600a6; }
+dd { color: green; }
+}
+*/`.replaceAll(/\s+/g, ' '),
         }), head);
         this.setHeaders(settings);
     }
@@ -209,8 +213,12 @@ export class HeadersetUi extends HTMLElement {
         }
     }
 
+    normalizeKeyName(key: string) {
+        return (this.#allowedHeaders.includes(key)) || /^headerset-/i.test(key) ? key : `headerset-${key}`;
+    }
+
     #normalizeValueString(name: string, value: string): HTMLSpanElement | HTMLTimeElement {
-        const type = this.#headerval.get(name.toLowerCase().replace(/^headerset-/i, ''));
+        const type = this.getHeaderValTypesNotNull().get(name.toLowerCase());
         // return stringtoType(type, value).string as string;
         const result = stringtoType(type, value);
         let span, innerText = result.string as string, dateTime = result.timeValue?.toISOString();
@@ -235,14 +243,15 @@ export class HeadersetUi extends HTMLElement {
 
     setHeaderValTypes(values: Map<string, string>, overwrite: boolean = false): this {
         const result = [], regexp = /^[a-z\-_0-9]+$/i;
-        const array = [...this.#headerval];
+        const array = [...this.getHeaderValTypesNotNull()];
         if (overwrite) array.length = 0;
-        for (const [key, val] of array.concat([...values])) {
+        for (let [key, val] of array.concat([...values])) {
+            key = this.normalizeKeyName(key);
             if (regexp.test(key) || regexp.test(val)) {
                 result.push(`${key}=${val}`);
             } // else {console.warn('warning setting: key =', key, '; val =', val);}
         }
-        this.headerVal = result.join();
+        this.headerVal = result.join().toLowerCase();
         return this;
     }
 
@@ -250,21 +259,24 @@ export class HeadersetUi extends HTMLElement {
         const temporary = this.headerVal?.replaceAll(/\s+/g, '');
         if (temporary === undefined) return null;
         const result: Map<string, string> = new Map;
-        const types: { key: string | undefined, val: string | undefined }[] = temporary
+        const types = temporary
             .toLowerCase().split(/,/g)
-            .map(m => m.split(/=/g))
-            .map(([key, val]) => ({ key, val }));
-        for (const { key, val } of types) {
-            if (key === undefined || val === undefined)
+            .map(m => m.split(/=/g));
+        for (const [key, val] of types) {
+            if (key === undefined || val === undefined) {
                 continue;
-            result.set(key, val);
+            } result.set(key, val);
         }
         return result;
     }
 
+    getHeaderValTypesNotNull(): Map<string, string> {
+        return this.getHeaderValTypes() || new Map;
+    }
+
     setHeader(name: string, value: HeadersetTSTypes): this {
         name = `${name}`;
-        const headersetName = (this.#allowedHeaders.includes(name)) ? name : `headerset-${name}`;
+        const headersetName = this.normalizeKeyName(name);
         if (value === null) {
             this.removeAttribute(headersetName);
             return this;
@@ -287,12 +299,19 @@ export class HeadersetUi extends HTMLElement {
         return this;
     }
 
+    setHeadersMap(keyValues: Map<string, HeadersetTSTypes>): this {
+        for (const [key, value] of keyValues) {
+            this.setHeader(camelToKebab(key), value);
+        }
+        return this;
+    }
+
 
     getHeader(name: string): HeadersetTSTypes {
         name = `${name}`;
-        const headersetName = (this.#allowedHeaders.includes(name)) ? name : `headerset-${name}`;
+        const headersetName = this.normalizeKeyName(name);
         const value = this.getAttribute(headersetName);
-        const type = this.#headerval.get(name);
+        const type = this.getHeaderValTypesNotNull().get(name);
         return stringtoType(type, value, true).string;
     }
 

@@ -7,7 +7,7 @@ import {
   redis,
 } from "@devvit/web/server";
 import { createPost } from "./post";
-import { ResolveSecondsAfter } from "anthelpers";
+import { assignProperties, ResolveSecondsAfter } from "anthelpers";
 
 const app = express();
 
@@ -24,12 +24,88 @@ router.get("/api/postsList", async (_req, res): Promise<void> => {
   try {
     const { subredditName } = context;
     const postObjects = await reddit.getNewPosts({ subredditName, limit: 50 }).all(),
-      posts: string[] = new Array, expiration = ResolveSecondsAfter(8600);
+      posts: string[] = new Array, expiration = ResolveSecondsAfter(60*2.5);
     for (const post of postObjects) {
       posts.push(post.id);
       await redis.set(post.id, JSON.stringify(post), { expiration });
     }
     res.json({ posts });
+  } catch (error) {
+    res.status(400).json({
+      status: "error",
+      message: "Failed to Fetch",
+      error: String(error),
+      pages: []
+    });
+  }
+});
+
+router.get("/api/getComments", async (req, res): Promise<void> => {
+  try {
+    const postId = req.query['reddit-id'] as string | undefined;
+    if (!postId) throw new RangeError('reddit-id is undefined');
+    let comments;
+    if (postId.startsWith('t3_')) {
+      // @ts-expect-error
+      comments = await (await reddit.getPostById(postId)).comments.all();
+    } else if (postId.startsWith('t1_')) {
+      // @ts-expect-error
+      comments = await (await reddit.getCommentById(postId)).replies.all();
+    } else throw new RangeError('reddit-id is invalid');
+    const commentIds: string[] = new Array, expiration = ResolveSecondsAfter(60*2.5);
+    for (const comment of comments) {
+      commentIds.push(comment.id);
+      let approvedAt;
+      if (comment.approvedAtUtc) {
+        approvedAt = new Date(comment.approvedAtUtc * 1000);
+      } else approvedAt = null;
+      await redis.set(comment.id, JSON.stringify(assignProperties({
+        approvedAt,
+      }, comment, 'body, authorId, authorName, createdAt, removed, url, stickied, score'.split(/, /g))), { expiration });
+    }
+    res.json({ commentIds });
+  } catch (error) {
+    res.status(400).json({
+      status: "error",
+      message: "Failed to Fetch",
+      error: String(error),
+      pages: []
+    });
+  }
+});
+
+router.get("/api/getComment", async (req, res): Promise<void> => {
+  try {
+    const postId = req.query['reddit-id'] as string | undefined;
+    if (!postId) throw new RangeError('reddit-id is undefined');
+    let comment = unpackJSON(await redis.get(postId));
+    if (!comment) {
+      // @ts-expect-error
+      let commentObject = await reddit.getCommentById(postId);
+      let approvedAt;
+      if (commentObject.approvedAtUtc) {
+        approvedAt = new Date(commentObject.approvedAtUtc * 1000);
+      } else approvedAt = null;
+      comment = JSON.parse(JSON.stringify(assignProperties({
+        approvedAt,
+      }, commentObject, 'body, authorId, authorName, createdAt, removed, url, stickied, score'.split(/, /g))));
+    } res.json({ comment });
+  } catch (error) {
+    res.status(400).json({
+      status: "error",
+      message: "Failed to Fetch",
+      error: String(error),
+      pages: []
+    });
+  }
+});
+
+router.get("/api/modmailList", async (_req, res): Promise<void> => {
+  try {
+    await isModerayor();
+    const { subredditName } = context;
+    const { conversations } = (await reddit.modMail.getConversations({ subreddits: [subredditName], limit: 50, state: 'all' }));
+    res.json({ conversations });
   } catch (error) {
     res.status(400).json({
       status: "error",
@@ -49,7 +125,7 @@ function unpackJSON(json: any) {
 router.get("/api/getPost", async (req, res): Promise<void> => {
   try {
     const postId = req.query['reddit-id'] as string | undefined;
-    if (!postId) throw new RangeError('wikipageName is undefined');
+    if (!postId) throw new RangeError('reddit-id is undefined');
     // @ts-expect-error
     let { title, body, createdAt, authorId, bodyHtml, authorName, url } = unpackJSON(await redis.get(postId)) || (await reddit.getPostById(postId));
     res.json({ title, body, createdAt, authorId, bodyHtml, authorName, url });
